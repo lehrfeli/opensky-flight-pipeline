@@ -1,0 +1,21 @@
+CREATE TABLE aircraft_data(
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    icao24 TEXT NOT NULL,
+    callsign TEXT,
+    origin_country TEXT NOT NULL,
+    time_position TIMESTAMPTZ,
+    last_contact TIMESTAMPTZ NOT NULL,
+    longitude DOUBLE PRECISION,
+    latitude DOUBLE PRECISION,
+    baro_altitude DOUBLE PRECISION, 
+    on_ground BOOLEAN NOT NULL,
+    velocity DOUBLE PRECISION,
+    true_track DOUBLE PRECISION,
+    vertical_rate DOUBLE PRECISION,
+    geo_altitude DOUBLE PRECISION,
+    squawk TEXT,
+    position_source SMALLINT NOT NULL,
+    poll_time TIMESTAMPTZ NOT NULL,
+    ingested_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT uq_observation UNIQUE (icao24, last_contact)
+)
