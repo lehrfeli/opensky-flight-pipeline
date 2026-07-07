@@ -1,0 +1,2 @@
+# Do not commit .env to git
+.env
