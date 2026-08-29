@@ -20,3 +20,5 @@ def test_parse_response():
     assert isinstance(first_record["time_position"], datetime)
     assert isinstance(first_record["last_contact"], datetime)
     assert isinstance(first_record["poll_time"], datetime)
+    assert records[3]["squawk"] is None
+    assert first_record["poll_time"] == last_record["poll_time"]
