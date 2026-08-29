@@ -1,10 +1,12 @@
 import json
 from datetime import datetime
+from pathlib import Path
 from pipeline.parse import parse_response
 
 def test_parse_response():
     # 1. Load the known input (as if using collect.py)
-    with open("data/sample_response.json") as f:
+    fixture = Path(__file__).parent.parent / "data" / "sample_response.json"
+    with open(fixture) as f:
         response = json.load(f)
 
     # run the parse_response function

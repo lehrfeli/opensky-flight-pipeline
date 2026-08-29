@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(python -c \"from dotenv import load_dotenv; import os; load_dotenv\\(\\); print\\('CLIENT_ID set:', 'OPENSKY_CLIENT_ID' in os.environ\\); print\\('CLIENT_SECRET set:', 'OPENSKY_CLIENT_SECRET' in os.environ\\)\")",
+      "PowerShell(python scratch_collect.py)",
+      "PowerShell(git check-ignore -v .env.bak)",
+      "PowerShell(python -m pytest tests/test_parse.py -v)",
+      "PowerShell(\"--- WSL distros ---\"; wsl --list --verbose; \"--- docker on Windows PATH ---\"; try { \\(Get-Command docker -ErrorAction Stop\\).Source } catch { \"docker not on Windows PATH\" }; \"--- Docker Desktop installed? ---\"; Test-Path \"$env:ProgramFiles\\\\Docker\\\\Docker\\\\Docker Desktop.exe\"; \"--- Docker Desktop process running? ---\"; if \\(Get-Process \"Docker Desktop\" -ErrorAction SilentlyContinue\\) { \"RUNNING\" } else { \"NOT running\" })",
+      "Bash(wsl -d Ubuntu -e sh -c 'echo \"--- which docker ---\"; which docker || echo \"\\(none\\)\"; echo \"--- is it the stub? ---\"; head -c 300 /usr/bin/docker 2>/dev/null | head -5; echo; echo \"--- socket ---\"; ls -l /var/run/docker.sock 2>&1')",
+      "Bash(wsl -d Ubuntu -e sh -c 'echo \"--- reproduce ---\"; docker version 2>&1 | head -8; echo \"--- PATH entries with docker ---\"; ls -l /usr/bin/docker /usr/local/bin/docker 2>&1; echo \"--- docker-desktop mount ---\"; ls /mnt/wsl/docker-desktop* 2>&1 | head')",
+      "PowerShell($s = Get-Content \"$env:APPDATA\\\\Docker\\\\settings-store.json\" -Raw | ConvertFrom-Json; $s.PSObject.Properties | Where-Object { $_.Name -match \"wsl|Wsl|WSL\" } | ForEach-Object { \"$\\($_.Name\\) = $\\($_.Value\\)\" })"
+    ]
+  }
+}

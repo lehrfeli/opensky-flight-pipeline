@@ -30,7 +30,9 @@ OpenSky /states/all API
    - anomaly detection (rule-based + unsupervised)
 ```
 
-**Current state of the repo:** only the Postgres schema ([sql/create_tables.sql](sql/create_tables.sql)) exists so far. The ingestion script, Airflow DAGs, Docker Compose stack, and the analytics/anomaly-detection layers are planned but not yet written. `docker-compose.yml`, `requirements.txt`, and `.env.example` are currently placeholder files.
+**Current state of the repo:** collection and parsing work end to end against the live API — [pipeline/config.py](pipeline/config.py) (endpoints, bounding box, timeout), [pipeline/collect.py](pipeline/collect.py) (OAuth2 token handling and the `/states/all` fetch), and [pipeline/parse.py](pipeline/parse.py) (state vectors to cleaned row dicts), covered by [tests/test_parse.py](tests/test_parse.py) against a recorded fixture. The Postgres schema ([sql/create_tables.sql](sql/create_tables.sql)) is written.
+
+Not yet written: `store.py` (the Postgres write path), the Airflow DAGs, and the analytics/anomaly-detection layers. `docker-compose.yml` is still an empty placeholder.
 
 ## The data
 
@@ -72,11 +74,21 @@ The two timestamp pairs matter because they answer different questions: "when di
 
 **Dedup:** `/states/all` will often return the same aircraft state across consecutive polls if nothing has changed. `UNIQUE (icao24, last_contact)` plus `ON CONFLICT DO NOTHING` on insert means a repeated (icao24, last_contact) pair is silently skipped, so the same real-world observation isn't stored twice just because it showed up in more than one poll.
 
+## Data notes
+
+OpenSky reports in metric units, and stores them unconverted:
+
+- `baro_altitude`, `geo_altitude` — meters
+- `velocity`, `vertical_rate` — meters per second
+- `true_track` — degrees
+
+The analytics layer is responsible for converting these (e.g. to feet and knots). Nothing in the schema or the API response records a unit, so a missed conversion produces plausible-looking numbers rather than an error — these mistakes are silent.
+
 ## Setup
 
-Not yet runnable end-to-end — this documents the intended configuration.
+Collection and parsing are runnable now; storage and orchestration are not, so the Docker/Airflow parts below document the intended configuration rather than something you can start today.
 
-**Environment variables** (`.env`, based on `.env.example`):
+**Environment variables** (`.env` in the repo root):
 
 OpenSky's API requires OAuth2 client credentials, obtained from an OpenSky account:
 
@@ -88,7 +100,7 @@ POSTGRES_PASSWORD=
 POSTGRES_DB=
 ```
 
-`.env` is gitignored; `.env.example` is meant to be the checked-in template with the variable names but no values.
+`.env` is gitignored and never committed — the block above is the reference for what it must contain. Note that it has to be `KEY=VALUE` lines: OpenSky's credential download is a JSON blob, and `load_dotenv()` ignores it silently, leaving the variables unset.
 
 **Running it** (once the Docker Compose stack is written):
 
